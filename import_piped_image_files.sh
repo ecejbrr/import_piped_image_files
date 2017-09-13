@@ -1,5 +1,6 @@
-#!/bin/bash
 #/usr/bin/env bash
+# Author: ecejbrr
+# Date: 2017-09-13
 
 # Program to process a list of image files piped from find
 # It places (moves) them into $HOME/Pictures/YYYY/MM/DD folder:
