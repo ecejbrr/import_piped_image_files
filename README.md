@@ -9,8 +9,9 @@ MM: month
 DD: day
 being YYYY/MM/DD the date of taken shot.
 
-It uses great "exiftool" program to isolate "Date/Time Original" tag and use the YYYY/MM/DD data to address the destination folder.
+It uses great "exiftool" program to isolate "Date/Time Original" tag and to use the YYYY/MM/DD data to address the destination folder.
 If the image file does NOT have that "Date/Time Original" tag, that file will be skipped (and therefore not imported (moved)).
+
 
 
 ## Example
