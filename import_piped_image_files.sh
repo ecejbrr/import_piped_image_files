@@ -85,7 +85,7 @@ while read file
 do
 
     # grab taken shot date (YYYY:MM:DD) from image file
-    date=$(exiftool $file | gawk -F"^Date/Time Original *:" '/^Date\/Time Original/{print $2}' | sed -e 's/^ *//; s/ *$//' | cut -d\  -f1)
+    date=$(exiftool $file | gawk -F"^Date/Time Original *:" '/^Date\/Time Original/{print $2}' | sed -e 's/^ *//; s/ *$//' | cut -d\  -f1 | sort -u)
     
     check_date $date && { e_echo "Unable to get Date/Time Original tag from $file file. Skipping it. "; continue; }
 
