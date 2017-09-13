@@ -61,7 +61,7 @@ function move_file() {
 
 function check_date() {
     local date=$1
-    [[ $date -eq "" ]] 
+    [[ $date == "" ]]
 }
 
 # main (processing STDIN with file(s) output by "find")
@@ -86,6 +86,7 @@ do
 
     # grab taken shot date (YYYY:MM:DD) from image file
     date=$(exiftool $file | gawk -F"^Date/Time Original *:" '/^Date\/Time Original/{print $2}' | sed -e 's/^ *//; s/ *$//' | cut -d\  -f1 | sort -u)
+    #e_echo "date: $date"
     
     check_date $date && { e_echo "Unable to get Date/Time Original tag from $file file. Skipping it. "; continue; }
 
@@ -108,7 +109,7 @@ do
     for folder in $folders
     do
         check_not_exists $folder && { 
-                                        e_echo "Creating folder $folder." 
+                                        e_echo "Creating folder $folder" 
                                         mkdir $folder
                                     }
     done
