@@ -25,7 +25,7 @@ function e_echo() {
 function check_bin() {
     local binary=$1
     #e_echo "Checking $binary"
-    [ $(which $binary) ]
+    [ $(which $binary) ] || { e_echo "Binary $binary not found. Exiting..."; exit 2; }
 }
 
 function check_not_writeable() {
@@ -58,13 +58,18 @@ function move_file() {
     mv $file $target
 }
 
+function check_date() {
+    local date=$1
+    [[ $date -eq "" ]] 
+}
+
 # main (processing STDIN with file(s) output by "find")
 
 e_echo "Home folder to create directory structure: $PHOME"
 
 # Check binaries
 binaries="
-jhead
+exiftool
 sed
 gawk
 cut
@@ -72,23 +77,25 @@ grep
 "
 for bin in $binaries
 do
-    check_bin $bin || { e_echo "Binary $bin not found. Exiting..."; exit 2; }
+    check_bin $bin 
 done
 
 while read file
 do
 
     # grab taken shot date (YYYY:MM:DD) from image file
-    date=$(jhead $file | gawk -F"^Date/Time *:" '/^Date\/Time/{print $2}' | sed -e 's/^ *//; s/ *$//' | cut -d\  -f1)
+    date=$(exiftool $file | gawk -F"^Date/Time Original *:" '/^Date\/Time Original/{print $2}' | sed -e 's/^ *//; s/ *$//' | cut -d\  -f1)
+    
+    check_date $date && { e_echo "Unable to get Date/Time Original tag from $file file. Skipping it. "; continue; }
 
     year=$(echo $date | gawk -F":" '{print $1}')
-    check_year $year || { echo "Year $year is not valid. Exiting..."; exit 3;}
+    check_year $year || { e_echo "Year $year is not valid. Exiting..."; exit 3;}
 
     month=$(echo $date | gawk -F":" '{print $2}')
-    check_month-day $month || { echo "Month $month is not valid. Exiting..."; exit 4;}
+    check_month-day $month || { e_echo "Month $month is not valid. Exiting..."; exit 4;}
 
     day=$(echo $date | gawk -F":" '{print $3}')
-    check_month-day $day || { echo "Day $day is not valid. Exiting..."; exit 5;}
+    check_month-day $day || { e_echo "Day $day is not valid. Exiting..."; exit 5;}
 
 
     # create folder tree if it does not exist
