@@ -3,7 +3,7 @@
 # Date: 2017-09-13
 
 # Program to process a list of image files piped from find
-# It places (moves) them into $HOME/Pictures/YYYY/MM/DD folder:
+# It imports (moves) them into $HOME/Pictures/YYYY/MM/DD folder:
 # YYYY: year
 # MM: month
 # DD: day
@@ -45,9 +45,9 @@ function check_binaries() {
 }
 
 function check_not_writeable() {
-    local dir=$1 
+    local dir="$1" 
     #e_echo "Checking $dir writeability"
-    [[ ! -w $dir ]]
+    [[ ! -w "$dir" ]]
 }
 
 function check_not_exists() {
@@ -77,7 +77,11 @@ function move_file() {
 
 function check_date() {
     local date="$1"
-    [[ $date == "" ]]
+    # date non-empty?
+    [[ $date != "" ]]
+    result="$?"
+    [ "$result" -eq 0 ] || e_echo "INFO: Unable to get Date/Time Original tag from $file file. Skipping it. "
+    return "$result"
 }
 
 function get_date() {
@@ -140,6 +144,8 @@ function check_file_in_target() {
     return "$result"
 }
 
+###############################################################################
+
 # main (processing STDIN with file(s) output by "find")
 
 e_echo "INFO: Base directory to import pictures: $PHOME"
@@ -150,9 +156,8 @@ while read file
 do
 
     date=$(get_date "$file")
-    #e_echo "date: $date"
     
-    check_date "$date" && { e_echo "INFO: Unable to get Date/Time Original tag from $file file. Skipping it. "; continue; }
+    check_date "$date" || continue
     declare -a yyyymmdd=( $(split_date "$date") )
 
     year="${yyyymmdd[0]}"
