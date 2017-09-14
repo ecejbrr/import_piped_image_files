@@ -21,3 +21,6 @@ find . -type f -iname "*jpg" -o -name "*CR2" | ./import_piped_image_files.sh
 
 ## TODO
 - ~~Check if image file already exists in target and skip import.~~
+- ~~Handle files/folders with spaces.~~
+## Known Limitations
+- ~~It does NOT work with files/folders containing spaces.~~
