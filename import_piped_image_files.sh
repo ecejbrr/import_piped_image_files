@@ -13,6 +13,7 @@
 # find . -type f -iname "*jpg" -o -name "*CR2" | ./import_piped_image_files.sh
 
 function usage() {
+    echo
     echo "--------------------------------------------------------------------------------------"
     echo "USAGE:"
     echo
@@ -36,6 +37,13 @@ function usage() {
     echo 'find . -type f -iname "*jpg" -o -name "*CR2" | ./import_piped_image_files.sh other_dir'
     echo
     echo "Same as previous example, but files are imported under 'other_dir' instead"
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo "EXAMPLE 3:"
+    echo 'find . -newer "last_img.jpg" -a -name "*CR2" | ./import_piped_image_files.sh other_dir'
+    echo
+    echo "All CR2 files newer than 'last_img.jpg' found under '.' dir will be imported "
+    echo "under 'other_dir'"
     echo
     echo "--------------------------------------------------------------------------------------"
     
