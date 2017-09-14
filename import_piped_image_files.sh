@@ -2,15 +2,6 @@
 # Author: ecejbrr
 # Date: 2017-09-13
 
-# Program to process a list of image files piped from find
-# It imports (moves) them into $HOME/Pictures/YYYY/MM/DD folder:
-# YYYY: year
-# MM: month
-# DD: day
-# being YYYY/MM/DD the date of taken shot.
-#
-# Example:
-# find . -type f -iname "*jpg" -o -name "*CR2" | ./import_piped_image_files.sh
 
 function usage() {
     echo
@@ -22,7 +13,10 @@ function usage() {
     echo "***********************************"
     echo "Script needs to be fed (STDIN) with list of files to import: for instance"
     echo "the output from 'find'"
-    echo "If not given as argument, files will be imported in $HOME/Pictures directory"
+    echo "If not given as argument, files will be imported in '$HOME/Pictures' directory"
+    echo "The folder structure to place the files under the base import directory is:"
+    echo "BASE_IMPORT_DIR/YYYY/MM/DD/picture_file"
+    echo "YYYY: year, MM: month, DD: day of the taken shot"
     echo
     echo "--------------------------------------------------------------------------------------"
     echo "EXAMPLE 1:"
