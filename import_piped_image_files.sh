@@ -13,9 +13,11 @@ function usage() {
     echo "script_outputting_files_to_import | ${0##*/} [import_directory]"
     echo
     echo "***********************************"
-    echo "Script needs to be fed (STDIN) with list of files to import: for instance"
-    echo "the output from 'find'"
-    echo "If not given as argument, files will be imported in '$HOME/Pictures' directory"
+    echo "Script needs to be fed (STDIN) with list of files to import: "
+    echo "for instance the output from 'find'"
+    echo "By default, files will be imported in '$HOME/Pictures' directory"
+    echo "Script optionally accepts a directory as argument. If given it will be used "
+    echo "as target base directory"
     echo "The folder structure to place the files under the base import directory is:"
     echo "BASE_IMPORT_DIR/YYYY/MM/DD/picture_file"
     echo "YYYY: year, MM: month, DD: day of the taken shot"
@@ -40,6 +42,18 @@ function usage() {
     echo
     echo "All CR2 files newer than 'last_img.jpg' found under '.' dir will be imported "
     echo "under 'other_dir'"
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo "EXAMPLE 4:"
+    echo 'find . -name "*CR2" | import_piped_image_files.sh "dir with spaces"'
+    echo
+    echo "All CR2 files found under '.' dir will be imported under 'dir with spaces'"
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo "EXAMPLE 5:"
+    echo 'find . -name "*CR2" | import_piped_image_files.sh dir\ with\ spaces'
+    echo
+    echo "All CR2 files found under '.' dir will be imported under 'dir with spaces'"
     echo
     echo "--------------------------------------------------------------------------------------"
     
@@ -192,14 +206,14 @@ function create_folders() {
 function check_file_in_target() {
     #e_echo "function: check_file_in_target"
     # using array file to prevent errors in filenames with spaces
-    local file[0]="${1##*/}"
+    local a_file[0]="${1##*/}"
     local a_dir[0]="$2"
 
     #e_echo "INFO: Checking if target file $a_dir/${file[0]} exists..."
-    [[ ! -e "$a_dir/${file[0]}" ]] 
+    [[ ! -e "$a_dir/${a_file[0]}" ]] 
     result="$?"
 
-    [ "$result" -ne 0 ] && e_echo "INFO: File $a_dir/${file[0]} already exists. Skipping it..."
+    [ "$result" -ne 0 ] && e_echo "INFO: File $a_dir/${a_file[0]} already exists. Skipping it..."
     return "$result"
 }
 
@@ -207,18 +221,19 @@ function check_file_in_target() {
 function store_filenames_in_array() {
     #e_echo "function: store_filenames_in_array"
     # all filenames output by find will be placed in an array: a_files_to_import
-    
-    # it makes use of global array a_files_to_import
+    # key is declaring locally the nameref a_nameref_files_to_import variable to a_files_to_import
+    local -n a_nameref_files_to_import="$1"
     local file
     local i
 
     i=0
     while read file
     do
-        a_files_to_import[$((i++))]="$file"
+        #nameref
+        a_nameref_files_to_import[$((i++))]="$file"
     done
     # debug
-    #for file in "${a_files_to_import[@]}"
+    #for file in "${a_nameref_files_to_import[@]}"
     #do
     #    echo $file
     #done
@@ -226,10 +241,14 @@ function store_filenames_in_array() {
 
 function process_files_to_import() {
     #e_echo "function: process_files_to_import"
-    local a_files="$1"
-    local a_import_dir[0]="$2"
 
-    for file in "${a_files_to_import[@]}"
+    # let's try nameref (local -n) to manipulate arrays
+    local -n a_files="$1"
+    local file
+    local -n a_import_dir="$2"
+
+    # loop over the set of files to import
+    for file in "${a_files[@]}"
     do  
 
         local date=$(get_date "$file")
@@ -252,45 +271,50 @@ function process_files_to_import() {
 
 function check_args() {
     #e_echo "function: check_args"
-    # all arguments are conveyed to this function and stored in following array (args)
     local args[0]="$1" 
 
     [[ ${args} != "" ]]
 
     
-    # returns 0 if there are some args
+    # returns 0 if there are any arguments
 }
 
 function check_if_not_piped() {
+    #e_echo check_if_not_piped
+    # this function checks if script is fed (piped) from a previous program
     [[ ! -p /dev/stdin ]] && usage
 }
 
-###############################################################################
 
-# main (processing STDIN with file(s) output by "find")
+# main 
 
 function main() {
     #e_echo "function: main"
-    # if an argument is found, ALL of IT is considered as a target directory
+    # if an argument is found, it will be used as target directory
     local args[0]="$1"
     
     check_if_not_piped
 
     check_binaries
 
+    # Bash array to store target directory
+    declare -a a_target_dir
+
     # if there are arguments, used them to set new import directory
     # if no args, use default import dir: $HOME/Pictures
-    check_args "${args[0]}" && export PHOME="$args" || export PHOME="$HOME/Pictures"
-    e_echo "INFO: Base directory to import pictures: $PHOME"
+    check_args "${args[0]}" && a_target_dir[0]="$args" || a_target_dir[0]="$HOME/Pictures"
+    e_echo "INFO: Base directory to import pictures: $a_target_dir"
 
     # Bash array to store files to import
     declare -a a_files_to_import
 
     # storing filenames in an array allows to process
     # files and dirs with spaces.
-    store_filenames_in_array    #a_files_to_import[]
+    store_filenames_in_array a_files_to_import  #array is passed by reference to function (local -n in function)   
+    # https://stackoverflow.com/questions/16461656/bash-how-to-pass-array-as-an-argument-to-a-function
 
-    process_files_to_import "${a_files_to_import}" "$PHOME"
+    # same approach to pass by reference the 2 arrays to the function
+    process_files_to_import a_files_to_import a_target_dir
 
     exit 0
 }

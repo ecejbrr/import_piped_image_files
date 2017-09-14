@@ -1,7 +1,8 @@
 # import_piped_image_files
 
-- Utility to read STDIN files output by ``find`` and import (move) them to a $HOME/Pictures/YYYY/MM/DD folder
-- Optionally if the script is given a "directory" as argument(s), all arguments will be considered as the target directory instead of $HOME/Pictures
+- Utility to read STDIN files output by ``find`` and import (move) them to a YYYY/MM/DD folder structure under a target directory.
+- Default target directory is $HOME/Pictures.
+- Optionally a target directory can be given to the script as argument. If given it will be used instead of $HOME/Pictures
 
 - Image files will be placed under the target directory in a YYYY/MM/DD folder structure:
  - YYYY: year
@@ -36,6 +37,16 @@ All CR2 files newer than 'last_img.jpg' found under '.' dir will be imported und
 
 ```
 find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh other_dir
+```
+
+If target directory contains spaces:
+
+```
+find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh "dir with spaces"
+```
+
+```
+find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh dir\ with\ spaces
 ```
 
 ## TODO
