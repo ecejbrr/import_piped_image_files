@@ -10,7 +10,7 @@ function usage() {
     echo "Assuming you have downloaded import_piped_image_files.sh script with execution "
     echo "permissions in a folder in your PATH (e.g.: /usr/local/bin)"
     echo
-    echo "script_outputting_files_to_import | ${0##*/} [import directory]"
+    echo "script_outputting_files_to_import | ${0##*/} [import_directory]"
     echo
     echo "***********************************"
     echo "Script needs to be fed (STDIN) with list of files to import: for instance"
@@ -23,20 +23,20 @@ function usage() {
     echo "--------------------------------------------------------------------------------------"
     echo "EXAMPLE 1:"
     echo
-    echo 'find . -type f -iname "*jpg" -o -name "*CR2" | ./import_piped_image_files.sh'
+    echo 'find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh'
     echo
     echo "It searchs all JPG case insensitive files and CR2 files from"
     echo "current directory and import them in default dir: $HOME/Pictures"
     echo
     echo "--------------------------------------------------------------------------------------"
     echo "EXAMPLE 2:"
-    echo 'find . -type f -iname "*jpg" -o -name "*CR2" | ./import_piped_image_files.sh other_dir'
+    echo 'find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh other_dir'
     echo
     echo "Same as previous example, but files are imported under 'other_dir' instead"
     echo
     echo "--------------------------------------------------------------------------------------"
     echo "EXAMPLE 3:"
-    echo 'find . -newer "last_img.jpg" -a -name "*CR2" | ./import_piped_image_files.sh other_dir'
+    echo 'find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh other_dir'
     echo
     echo "All CR2 files newer than 'last_img.jpg' found under '.' dir will be imported "
     echo "under 'other_dir'"

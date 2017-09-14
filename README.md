@@ -1,14 +1,15 @@
 # import_piped_image_files
-Utility to read STDIN files output by "find" and import (move) them to a $HOME/Pictures/YYYY/MM/DD folder
-Optionally if the script is given a "directory" as argument(s), all arguments will be considered a target directory instead of $HOME/Pictures
 
-## Usage
-Program to process a list of image files piped from find
-It imports (moves) them into $HOME/Pictures/YYYY/MM/DD folder:
-YYYY: year
-MM: month
-DD: day 
-being YYYY/MM/DD the date of taken shot.
+- Utility to read STDIN files output by ``find`` and import (move) them to a $HOME/Pictures/YYYY/MM/DD folder
+- Optionally if the script is given a "directory" as argument(s), all arguments will be considered as the target directory instead of $HOME/Pictures
+
+- Image files will be placed under the target directory in a YYYY/MM/DD folder structure:
+ - YYYY: year
+ - MM: month
+ - DD: day 
+ - being YYYY/MM/DD the date of taken shot.
+
+- If the YYYY/MM/DD folder does not exist, it will be created
 
 It uses great ``exiftool`` program to isolate "Date/Time Original" tag and to use the YYYY/MM/DD data to address the destination folder.
 If the image file does NOT have that "Date/Time Original" tag, that file will be skipped (and therefore not imported (moved)).
