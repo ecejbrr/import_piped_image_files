@@ -10,14 +10,14 @@ MM: month
 DD: day 
 being YYYY/MM/DD the date of taken shot.
 
-It uses great "exiftool" program to isolate "Date/Time Original" tag and to use the YYYY/MM/DD data to address the destination folder.
+It uses great ``exiftool`` program to isolate "Date/Time Original" tag and to use the YYYY/MM/DD data to address the destination folder.
 If the image file does NOT have that "Date/Time Original" tag, that file will be skipped (and therefore not imported (moved)).
 
 
 
 ## Examples
 
-Assuming you have downloaded import_piped_image_files.sh script with execution permissions in a folder in your PATH (e.g.: /usr/local/bin)
+Assuming you have downloaded ``import_piped_image_files.sh`` script with execution permissions in a folder in your PATH (e.g.: /usr/local/bin)
 
 Import all JPG files (case insensitive) and all CR2 files from current directory downwards.
 
