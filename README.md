@@ -1,5 +1,6 @@
 # import_piped_image_files
 Utility to read STDIN files output by "find" and import (move) them to a $HOME/Pictures/YYYY/MM/DD folder
+Optionally if the script is given a "directory" as argument(s), all arguments will be considered a target directory instead of $HOME/Pictures
 
 ## Usage
 Program to process a list of image files piped from find
@@ -14,9 +15,24 @@ If the image file does NOT have that "Date/Time Original" tag, that file will be
 
 
 
-## Example
+## Examples
+
+Import all JPG files (case insensitive) and all CR2 files from current directory downwards.
+
 ```
 find . -type f -iname "*jpg" -o -name "*CR2" | ./import_piped_image_files.sh
+```
+
+Same as previous example, but files are imported under 'other_dir' instead
+
+```
+find . -type f -iname "*jpg" -o -name "*CR2" | ./import_piped_image_files.sh other_dir
+```
+
+All CR2 files newer than 'last_img.jpg' found under '.' dir will be imported under 'other_dir'
+
+```
+find . -newer "last_img.jpg" -a -name "*CR2" | ./import_piped_image_files.sh other_dir
 ```
 
 ## TODO
