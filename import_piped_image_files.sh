@@ -267,7 +267,7 @@ function check_if_not_piped() {
 
 function main() {
     #e_echo "function: main"
-    # if an argument is found, ALL of IT is considered a targer directory
+    # if an argument is found, ALL of IT is considered as a target directory
     local args[0]="$1"
     
     check_if_not_piped
