@@ -7,6 +7,8 @@ function usage() {
     echo
     echo "--------------------------------------------------------------------------------------"
     echo "USAGE:"
+    echo "Assuming you have downloaded import_piped_image_files.sh script with execution "
+    echo "permissions in a folder in your PATH (e.g.: /usr/local/bin)"
     echo
     echo "script_outputting_files_to_import | ${0##*/} [import directory]"
     echo

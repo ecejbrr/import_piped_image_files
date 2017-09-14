@@ -17,22 +17,24 @@ If the image file does NOT have that "Date/Time Original" tag, that file will be
 
 ## Examples
 
+Assuming you have downloaded import_piped_image_files.sh script with execution permissions in a folder in your PATH (e.g.: /usr/local/bin)
+
 Import all JPG files (case insensitive) and all CR2 files from current directory downwards.
 
 ```
-find . -type f -iname "*jpg" -o -name "*CR2" | ./import_piped_image_files.sh
+find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh
 ```
 
 Same as previous example, but files are imported under 'other_dir' instead
 
 ```
-find . -type f -iname "*jpg" -o -name "*CR2" | ./import_piped_image_files.sh other_dir
+find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh other_dir
 ```
 
 All CR2 files newer than 'last_img.jpg' found under '.' dir will be imported under 'other_dir'
 
 ```
-find . -newer "last_img.jpg" -a -name "*CR2" | ./import_piped_image_files.sh other_dir
+find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh other_dir
 ```
 
 ## TODO
