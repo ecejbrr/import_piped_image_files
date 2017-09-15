@@ -52,6 +52,7 @@ find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh dir\ 
 ## TODO
 - ~~Check if image file already exists in target and skip import.~~
 - ~~Handle files/folders with spaces.~~
+- ~~Statistics~~
 
 ## Known Limitations
 - ~~It does NOT work with files/folders containing spaces.~~
