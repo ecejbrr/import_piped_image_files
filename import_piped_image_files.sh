@@ -81,6 +81,8 @@ function check_binaries() {
     gawk
     cut
     grep
+    mv
+    cp
     "
     for bin in $binaries
     do
@@ -127,7 +129,7 @@ function move_file() {
     local -n array_c6="$3"
 
     e_echo "INFO: Moving ${a_file[0]} to ${a_target[0]}"
-    mv "${a_file[0]}" "${a_target[0]}" && step_up_counter array_c6 imported
+    $BIN "${a_file[0]}" "${a_target[0]}" && step_up_counter array_c6 imported
 }
 
 function check_date() {
@@ -372,13 +374,56 @@ function check_target_dir() {
     [[ $exit_code -gt 0 ]] && { e_echo "$result" ; exit $exit_code; }
 }
     
+function process_opts() {
+    #e_echo process_opts
+    local -n target_dir=$1
+    local OPTIND
+    local move=false
+
+    # pop target_dir from arguments to clean up options
+    shift 1
+
+    echo "process_opts-- \$1: $1"
+    echo "process_opts-- \$2: $2"
+    echo "process_opts-- \$3: $3"
+    echo "process_opts-- \$target_dir: ${target_dir[0]}"
+    while getopts mt:h option
+    do
+        echo "process_opts WHILE"
+        case "$option" in
+                m)  
+                    # import pictures by moving them from source location
+                    echo "mv"
+                    move=true
+                    ;;
+                t)
+                    # target directory
+                    target_dir[0]="$OPTARG"
+                    echo "process_opts-- IN case \$target_dir: ${target_dir[0]}"
+                    echo "process_opts-- IN case \$OPTARG[t]: ${OPTARG}"
+                    ;;
+                h) usage
+                    ;;
+                ?) usage
+                    ;;
+                *) usage
+                    ;;
+        esac
+        echo "OPTARG in process_opts: ${OPTARG}"
+        echo "process_opts--after case \$target_dir: ${target_dir[0]}"
+        # default behaviour for import: cp
+        $move && return 1 || return 0
+    done
+    shift $((OPTIND-1))
+
+}
 
 # main 
 
 function main() {
     #e_echo "function: main"
     # if an argument is found, it will be used as target directory
-    local args[0]="$1"
+    local args[0]="$@"
     local default_dir="$HOME/Pictures"
 
     check_if_not_piped
@@ -388,9 +433,19 @@ function main() {
     # Bash array to store target directory
     declare -a a_target_dir
 
+    export BIN="cp"
+    a_target_dir[0]="$default_dir"
+    #process_opts a_target_dir args || export BIN="mv"
+    echo "\$@ before process_opts: $@"
+    #process_opts a_target_dir "${args[0]}" || export BIN="mv"
+    process_opts a_target_dir "$@" || export BIN="mv"
+    process_opts a_target_dir "$@" || export BIN="mv"
+    echo "main BIN: $BIN"
+
+
     # if there are arguments, used them to set new import directory
     # if no args, use default import dir: $HOME/Pictures
-    check_args "${args[0]}" && a_target_dir[0]="$args" || a_target_dir[0]="$default_dir"
+    #check_args "${args[0]}" && a_target_dir[0]="$args" || a_target_dir[0]="$default_dir"
     e_echo "INFO: Base directory to import pictures: $a_target_dir"
 
     check_target_dir "${a_target_dir[0]}" "$default_dir"
@@ -416,4 +471,5 @@ function main() {
     exit 0
 }
 
+echo "OPTARG no func: ${OPTARG}"
 main "$@"
