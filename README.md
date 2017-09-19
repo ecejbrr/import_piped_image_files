@@ -1,8 +1,9 @@
 # import_piped_image_files
 
-- Utility to read STDIN files output by ``find`` and import (move) them to a YYYY/MM/DD folder structure under a target directory.
+- Utility to read STDIN files output by ``find`` and import (copy) them to a YYYY/MM/DD folder structure under a target directory.
 - Default target directory is $HOME/Pictures.
-- Optionally a target directory can be given to the script as argument. If given it will be used instead of $HOME/Pictures
+- Optionally a target directory can be given to the script as argument (-t target dir). If given it will be used instead of $HOME/Pictures
+- Optionally import behavior can be changed to move files while importing them (instead of copying them). Switch -m.
 
 - Image files will be placed under the target directory in a YYYY/MM/DD folder structure:
  - YYYY: year
@@ -30,23 +31,23 @@ find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh
 Same as previous example, but files are imported under 'other_dir' instead
 
 ```
-find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh other_dir
+find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh -t other_dir
 ```
 
-All CR2 files newer than 'last_img.jpg' found under '.' dir will be imported under 'other_dir'
+All CR2 files newer than 'last_img.jpg' found under '.' dir will be imported (MOVED) under 'other_dir'
 
 ```
-find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh other_dir
+find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh -m -t other_dir
 ```
 
 If target directory contains spaces:
 
 ```
-find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh "dir with spaces"
+find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh -t "dir with spaces"
 ```
 
 ```
-find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh dir\ with\ spaces
+find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh -t dir\ with\ spaces
 ```
 
 ## TODO

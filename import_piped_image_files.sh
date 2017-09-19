@@ -10,14 +10,15 @@ function usage() {
     echo "Assuming you have downloaded import_piped_image_files.sh script with execution "
     echo "permissions in a folder in your PATH (e.g.: /usr/local/bin)"
     echo
-    echo "script_outputting_files_to_import | ${0##*/} [import_directory]"
+    echo "find [options to find files to import] | ${0##*/} [-m] [-t target_directory]"
     echo
     echo "***********************************"
     echo "Script needs to be fed (STDIN) with list of files to import: "
     echo "for instance the output from 'find'"
-    echo "By default, files will be imported in '$HOME/Pictures' directory"
-    echo "Script optionally accepts a directory as argument. If given it will be used "
-    echo "as target base directory"
+    echo "By default, files will be imported (copied) in '$HOME/Pictures' directory"
+    echo "Options:"
+    echo " -m (move instead of copy for import). Optional."
+    echo " -t target directory. Import files to this target directory. Optional"
     echo "The folder structure to place the files under the base import directory is:"
     echo "BASE_IMPORT_DIR/YYYY/MM/DD/picture_file"
     echo "YYYY: year, MM: month, DD: day of the taken shot"
@@ -28,32 +29,32 @@ function usage() {
     echo 'find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh'
     echo
     echo "It searchs all JPG case insensitive files and CR2 files from"
-    echo "current directory and import them in default dir: $HOME/Pictures"
+    echo "current directory and import (copy) them in default dir: $HOME/Pictures"
     echo
     echo "--------------------------------------------------------------------------------------"
     echo "EXAMPLE 2:"
-    echo 'find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh other_dir'
+    echo 'find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh -t otherdir'
     echo
-    echo "Same as previous example, but files are imported under 'other_dir' instead"
+    echo "Same as previous example, but files are imported under 'otherdir' instead"
     echo
     echo "--------------------------------------------------------------------------------------"
     echo "EXAMPLE 3:"
-    echo 'find . -newer "last_img.jpg" -a -name "*CR2" | import_piped_image_files.sh other_dir'
+    echo 'find . -newer "last.jpg" -a -name "*CR2" | import_piped_image_files.sh -m -t other_dir'
     echo
-    echo "All CR2 files newer than 'last_img.jpg' found under '.' dir will be imported "
+    echo "All CR2 files newer than 'last.jpg' found under '.' dir will be imported (moved)"
     echo "under 'other_dir'"
     echo
     echo "--------------------------------------------------------------------------------------"
     echo "EXAMPLE 4:"
-    echo 'find . -name "*CR2" | import_piped_image_files.sh "dir with spaces"'
+    echo 'find . -name "*CR2" | import_piped_image_files.sh -t "dir with spaces"'
     echo
-    echo "All CR2 files found under '.' dir will be imported under 'dir with spaces'"
+    echo "All CR2 files found under '.' dir will be imported (copied) under 'dir with spaces'"
     echo
     echo "--------------------------------------------------------------------------------------"
     echo "EXAMPLE 5:"
-    echo 'find . -name "*CR2" | import_piped_image_files.sh dir\ with\ spaces'
+    echo 'find . -name "*CR2" | import_piped_image_files.sh -t dir\ with\ spaces'
     echo
-    echo "All CR2 files found under '.' dir will be imported under 'dir with spaces'"
+    echo "All CR2 files found under '.' dir will be imported (copied) under 'dir with spaces'"
     echo
     echo "--------------------------------------------------------------------------------------"
     
@@ -121,15 +122,16 @@ function check_month-day() {
     echo "$md" | grep -q -E "[0-9]{2}"
 }
 
-function move_file() {
-    #e_echo "function: move_file"
+function import_file() {
+    #e_echo "function: import_file"
     # import file 
     local a_file[0]="$1"
     local a_target[0]="$2"
     local -n array_c6="$3"
+    local binary="$4"
 
-    e_echo "INFO: Moving ${a_file[0]} to ${a_target[0]}"
-    $BIN "${a_file[0]}" "${a_target[0]}" && step_up_counter array_c6 imported
+    e_echo "INFO: Importing($binary) ${a_file[0]} to ${a_target[0]}"
+    $binary "${a_file[0]}" "${a_target[0]}" && step_up_counter array_c6 imported
 }
 
 function check_date() {
@@ -253,6 +255,7 @@ function process_files_to_import() {
     local file
     local -n a_import_dir="$2"
     local -n array_c1="$3"
+    local binary="$4"
 
     #step_up_counter array_c1 dummy
 
@@ -278,7 +281,7 @@ function process_files_to_import() {
 
         local target_folder[0]="${a_import_dir[0]}/$year/$month/$day"
 
-        check_file_in_target "$file" "$target_folder" array_c1 && move_file "$file" "${target_folder[0]}" array_c1
+        check_file_in_target "$file" "$target_folder" array_c1 && import_file "$file" "${target_folder[0]}" array_c1 "$binary"
 
     done
 }
@@ -383,38 +386,35 @@ function process_opts() {
     # pop target_dir from arguments to clean up options
     shift 1
 
-    echo "process_opts-- \$1: $1"
-    echo "process_opts-- \$2: $2"
-    echo "process_opts-- \$3: $3"
-    echo "process_opts-- \$target_dir: ${target_dir[0]}"
+    #echo "process_opts-- \$1: $1"
+    #echo "process_opts-- \$2: $2"
+    #echo "process_opts-- \$3: $3"
+    #echo "process_opts-- \$target_dir: ${target_dir[0]}"
     while getopts mt:h option
     do
-        echo "process_opts WHILE"
         case "$option" in
                 m)  
                     # import pictures by moving them from source location
-                    echo "mv"
                     move=true
                     ;;
                 t)
                     # target directory
                     target_dir[0]="$OPTARG"
-                    echo "process_opts-- IN case \$target_dir: ${target_dir[0]}"
-                    echo "process_opts-- IN case \$OPTARG[t]: ${OPTARG}"
+                    #echo "process_opts-- IN case \$target_dir: ${target_dir[0]}"
+                    #echo "process_opts-- IN case \$OPTARG[t]: ${OPTARG}"
                     ;;
                 h) usage
-                    ;;
-                ?) usage
                     ;;
                 *) usage
                     ;;
         esac
-        echo "OPTARG in process_opts: ${OPTARG}"
-        echo "process_opts--after case \$target_dir: ${target_dir[0]}"
-        # default behaviour for import: cp
-        $move && return 1 || return 0
+        #echo "OPTARG in process_opts: ${OPTARG}"
+        #echo "process_opts--after case \$target_dir: ${target_dir[0]}"
     done
-    shift $((OPTIND-1))
+    shift $((OPTIND-1)) # Discard the options and sentinel --
+
+    # default behaviour for import: cp
+    $move && return 1 || return 0
 
 }
 
@@ -423,39 +423,36 @@ function process_opts() {
 function main() {
     #e_echo "function: main"
     # if an argument is found, it will be used as target directory
-    local args[0]="$@"
+    #local args[0]="$@"
     local default_dir="$HOME/Pictures"
+
+    # Bash array to store target directory
+    local -a a_target_dir
 
     check_if_not_piped
 
     check_binaries
 
-    # Bash array to store target directory
-    declare -a a_target_dir
-
+    # By default, import will be done by copying
     export BIN="cp"
+
     a_target_dir[0]="$default_dir"
-    #process_opts a_target_dir args || export BIN="mv"
-    echo "\$@ before process_opts: $@"
-    #process_opts a_target_dir "${args[0]}" || export BIN="mv"
     process_opts a_target_dir "$@" || export BIN="mv"
-    process_opts a_target_dir "$@" || export BIN="mv"
-    echo "main BIN: $BIN"
+    e_echo "INFO: BINary used for import: $BIN"
 
 
     # if there are arguments, used them to set new import directory
     # if no args, use default import dir: $HOME/Pictures
-    #check_args "${args[0]}" && a_target_dir[0]="$args" || a_target_dir[0]="$default_dir"
     e_echo "INFO: Base directory to import pictures: $a_target_dir"
 
     check_target_dir "${a_target_dir[0]}" "$default_dir"
 
     # init counters
     # associative array
-    declare -A counters=( [read]=0 [skip_exist]=0 [skip_no_date]=0 [imported]=0 [dir_needed]=0 [dir_created]=0 [dummy]=0)
+    local -A counters=( [read]=0 [skip_exist]=0 [skip_no_date]=0 [imported]=0 [dir_needed]=0 [dir_created]=0 [dummy]=0)
 
     # Bash array to store files to import
-    declare -a a_files_to_import
+    local -a a_files_to_import
 
     # storing filenames in an array allows to process
     # files and dirs with spaces.
@@ -463,7 +460,7 @@ function main() {
     # https://stackoverflow.com/questions/16461656/bash-how-to-pass-array-as-an-argument-to-a-function
 
     # same approach to pass by reference the 3 arrays to the function
-    process_files_to_import a_files_to_import a_target_dir counters
+    process_files_to_import a_files_to_import a_target_dir counters "$BIN"
 
     # show counters
     show_counters counters
@@ -471,5 +468,4 @@ function main() {
     exit 0
 }
 
-echo "OPTARG no func: ${OPTARG}"
 main "$@"
