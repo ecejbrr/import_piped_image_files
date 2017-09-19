@@ -132,10 +132,9 @@ function import_file() {
     local -n impfile_a_counters=$3
     local -n impfile_binary=$4
 
-    $impfile_binary "${a_file[0]}" "${a_target[0]}" \
-    && {
-            e_echo "INFO: File ${a_file[0]} imported($impfile_binary) into ${a_target[0]}"
-            step_up_counter impfile_a_counters "imported"
+    $impfile_binary "${a_file[0]}" "${a_target[0]}" && {
+        e_echo "INFO: File ${a_file[0]} imported($impfile_binary) into ${a_target[0]}"
+        step_up_counter impfile_a_counters "imported"
     }
 }
 
@@ -205,15 +204,13 @@ function create_folders() {
         [[ "$folder" != "" ]] && {
             # debug
             #e_echo "INFO: Checking if $folder folder exists"
-            check_not_exists "$folder" \
-            && {
+            check_not_exists "$folder" && {
                     step_up_counter createfold_a_counters "dir_needed"
-                    mkdir "$folder" \
-                    && {
+                    mkdir "$folder" && {
                         e_echo "INFO: Folder $folder created"
                         step_up_counter createfold_a_counters "dir_created"
                     }
-                }
+            }
         }
 
     done
@@ -230,7 +227,10 @@ function check_file_in_target() {
     [[ ! -e "$a_dir/${a_file[0]}" ]] 
     result="$?"
 
-    [ "$result" -ne 0 ] && { e_echo "WARN: File $a_dir/${a_file[0]} already exists. Skipping it..."; step_up_counter chfit_a_counters "skip_exist"; }
+    [ "$result" -ne 0 ] && { 
+        e_echo "WARN: File $a_dir/${a_file[0]} already exists. Skipping it..."
+        step_up_counter chfit_a_counters "skip_exist"
+    }
     return "$result"
 }
 
@@ -294,7 +294,9 @@ function process_files_to_import() {
         if [ $pfti_force == "no" ]
         then
             # import file only if it does NOT exist in target. (no -f switch)
-            check_file_in_target "$file" "$target_folder" pfti_a_counters && import_file "$file" "${target_folder[0]}" pfti_a_counters pfti_binary
+            check_file_in_target "$file" "$target_folder" pfti_a_counters && {
+                import_file "$file" "${target_folder[0]}" pfti_a_counters pfti_binary
+            }
         else
             # import file even if it exists in target (-f switch given by user)
             import_file "$file" "${target_folder[0]}" pfti_a_counters pfti_binary
@@ -381,7 +383,10 @@ function check_target_dir() {
         fi
     fi
 
-    [[ $exit_code -gt 0 ]] && { e_echo "$result" ; exit $exit_code; }
+    [[ $exit_code -gt 0 ]] && { 
+        e_echo "$result" 
+        exit $exit_code
+    }
 }
     
 function process_opts() { #e_echo process_opts
