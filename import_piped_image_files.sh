@@ -132,8 +132,11 @@ function import_file() {
     local -n impfile_a_counters=$3
     local -n impfile_binary=$4
 
-    e_echo "INFO: Importing($impfile_binary) ${a_file[0]} to ${a_target[0]}"
-    $impfile_binary "${a_file[0]}" "${a_target[0]}" && step_up_counter impfile_a_counters "imported"
+    $impfile_binary "${a_file[0]}" "${a_target[0]}" \
+    && {
+            e_echo "INFO: File ${a_file[0]} imported($impfile_binary) into ${a_target[0]}"
+            step_up_counter impfile_a_counters "imported"
+    }
 }
 
 function check_date() {
@@ -202,11 +205,15 @@ function create_folders() {
         [[ "$folder" != "" ]] && {
             # debug
             #e_echo "INFO: Checking if $folder folder exists"
-            check_not_exists "$folder" && {
-                                            step_up_counter createfold_a_counters "dir_needed"
-                                            e_echo "INFO: Creating folder $folder"
-                                            mkdir "$folder" && step_up_counter createfold_a_counters "dir_created"
-                                        }
+            check_not_exists "$folder" \
+            && {
+                    step_up_counter createfold_a_counters "dir_needed"
+                    mkdir "$folder" \
+                    && {
+                        e_echo "INFO: Folder $folder created"
+                        step_up_counter createfold_a_counters "dir_created"
+                    }
+                }
         }
 
     done
