@@ -1,4 +1,4 @@
-#/usr/bin/env bash 
+#/usr/bin/env bash
 # Author: ecejbrr
 # Date: 2017-09-13
 
@@ -10,15 +10,17 @@ function usage() {
     echo "Assuming you have downloaded import_piped_image_files.sh script with execution "
     echo "permissions in a folder in your PATH (e.g.: /usr/local/bin)"
     echo
-    echo "find [options to find files to import] | ${0##*/} [-m] [-t target_directory]"
+    echo "find [options to find files to import] | ${0##*/} [-m] [-d] [-f] [-t target_directory]"
     echo
     echo "***********************************"
     echo "Script needs to be fed (STDIN) with list of files to import: "
     echo "for instance the output from 'find'"
     echo "By default, files will be imported (copied) in '$HOME/Pictures' directory"
     echo "Options:"
-    echo " -m (move instead of copy for import). Optional."
+    echo " -m move (instead of copy for import). Optional."
     echo " -t target directory. Import files to this target directory. Optional"
+    echo " -d debug. BASH debugging. Optional"
+    echo " -f force. Import file regardless it exists in target. Optional"
     echo "The folder structure to place the files under the base import directory is:"
     echo "BASE_IMPORT_DIR/YYYY/MM/DD/picture_file"
     echo "YYYY: year, MM: month, DD: day of the taken shot"
@@ -127,23 +129,23 @@ function import_file() {
     # import file 
     local a_file[0]="$1"
     local a_target[0]="$2"
-    local -n array_c6="$3"
-    local binary="$4"
+    local -n impfile_a_counters=$3
+    local -n impfile_binary=$4
 
-    e_echo "INFO: Importing($binary) ${a_file[0]} to ${a_target[0]}"
-    $binary "${a_file[0]}" "${a_target[0]}" && step_up_counter array_c6 imported
+    e_echo "INFO: Importing($impfile_binary) ${a_file[0]} to ${a_target[0]}"
+    $impfile_binary "${a_file[0]}" "${a_target[0]}" && step_up_counter impfile_a_counters "imported"
 }
 
 function check_date() {
     #e_echo "function: check_date"
     local date="$1"
-    local -n array_c2="$2"
+    local -n chdate_a_counters="$2"
 
     # date non-empty?
     [[ $date != "" ]]
     result="$?"
 
-    [ "$result" -eq 0 ] || { e_echo "WARN: Unable to get Date/Time Original tag from $file file. Skipping it. "; step_up_counter array_c2 "skip_no_date"; }
+    [ "$result" -eq 0 ] || { e_echo "WARN: Unable to get Date/Time Original tag from $file file. Skipping it. "; step_up_counter chdate_a_counters "skip_no_date"; }
     return "$result"
 }
 
@@ -191,7 +193,7 @@ function create_folders() {
     local month="$2"
     local day="$3"
     local a_import_dir[0]="$4"
-    local -n array_c7=$5
+    local -n createfold_a_counters=$5
     local folders=( "${a_import_dir[0]}/$year" "${a_import_dir[0]}/$year/$month" "$a_import_dir/$year/$month/$day" )
 
 
@@ -201,9 +203,9 @@ function create_folders() {
             # debug
             #e_echo "INFO: Checking if $folder folder exists"
             check_not_exists "$folder" && {
-                                            step_up_counter array_c7 "dir_needed"
+                                            step_up_counter createfold_a_counters "dir_needed"
                                             e_echo "INFO: Creating folder $folder"
-                                            mkdir "$folder" && step_up_counter array_c7 "dir_created"
+                                            mkdir "$folder" && step_up_counter createfold_a_counters "dir_created"
                                         }
         }
 
@@ -215,13 +217,13 @@ function check_file_in_target() {
     # using array file to prevent errors in filenames with spaces
     local a_file[0]="${1##*/}"
     local a_dir[0]="$2"
-    local -n array_c5="$3"
+    local -n chfit_a_counters="$3"
 
     #e_echo "INFO: Checking if target file $a_dir/${file[0]} exists..."
     [[ ! -e "$a_dir/${a_file[0]}" ]] 
     result="$?"
 
-    [ "$result" -ne 0 ] && { e_echo "WARN: File $a_dir/${a_file[0]} already exists. Skipping it..."; step_up_counter array_c5 "skip_exist"; }
+    [ "$result" -ne 0 ] && { e_echo "WARN: File $a_dir/${a_file[0]} already exists. Skipping it..."; step_up_counter chfit_a_counters "skip_exist"; }
     return "$result"
 }
 
@@ -229,8 +231,8 @@ function check_file_in_target() {
 function store_filenames_in_array() {
     #e_echo "function: store_filenames_in_array"
    # all filenames output by find will be placed in an array: a_files_to_import
-    # key is declaring locally the nameref a_nameref_files_to_import variable to a_files_to_import
-    local -n a_nameref_files_to_import="$1"
+    # key is declaring locally the nameref stofilia_a_files_to_import variable to a_files_to_import
+    local -n stofilia_a_files_to_import="$1"
     local file
     local i
 
@@ -238,10 +240,10 @@ function store_filenames_in_array() {
     while read file
     do
         #nameref
-        a_nameref_files_to_import[$((i++))]="$file"
+        stofilia_a_files_to_import[$((i++))]="$file"
     done
     # debug
-    #for file in "${a_nameref_files_to_import[@]}"
+    #for file in "${stofilia_a_files_to_import[@]}"
     #do
     #    echo $file
     #done
@@ -251,16 +253,17 @@ function process_files_to_import() {
     #e_echo "function: process_files_to_import"
 
     # let's try nameref (local -n) to manipulate arrays
-    local -n a_files="$1"
+    local -n ptfi_a_files_to_import=$1
     local file
-    local -n a_import_dir="$2"
-    local -n array_c1="$3"
-    local binary="$4"
+    local -n ptfi_a_import_dir=$2
+    local -n pfti_a_counters=$3
+    local -n pfti_binary=$4
+    local -n pfti_force=$5
 
-    #step_up_counter array_c1 dummy
+    #step_up_counter pfti_a_counters dummy
 
     # loop over the set of files to import
-    for file in "${a_files[@]}"
+    for file in "${ptfi_a_files_to_import[@]}"
     do  
 
         e_echo "INFO: Processing $file"
@@ -268,32 +271,29 @@ function process_files_to_import() {
         local date=$(get_date "$file")
         
         # step-up file read counter
-        step_up_counter array_c1 read
+        step_up_counter pfti_a_counters "read"
 
-        check_date "$date" array_c1 || continue
+        check_date "$date" pfti_a_counters || continue
         local yyyymmdd=( $(split_date "$date") )
 
         local year="${yyyymmdd[0]}"
         local month="${yyyymmdd[1]}"
         local day="${yyyymmdd[2]}"
 
-        create_folders "$year" "$month" "$day" "${a_import_dir[@]}" array_c1
+        create_folders "$year" "$month" "$day" "${ptfi_a_import_dir[@]}" pfti_a_counters
 
-        local target_folder[0]="${a_import_dir[0]}/$year/$month/$day"
+        local target_folder[0]="${ptfi_a_import_dir[0]}/$year/$month/$day"
 
-        check_file_in_target "$file" "$target_folder" array_c1 && import_file "$file" "${target_folder[0]}" array_c1 "$binary"
+        if [ $pfti_force == "no" ]
+        then
+            # import file only if it does NOT exist in target. (no -f switch)
+            check_file_in_target "$file" "$target_folder" pfti_a_counters && import_file "$file" "${target_folder[0]}" pfti_a_counters pfti_binary
+        else
+            # import file even if it exists in target (-f switch given by user)
+            import_file "$file" "${target_folder[0]}" pfti_a_counters pfti_binary
+        fi
 
     done
-}
-
-function check_args() {
-    #e_echo "function: check_args"
-    local args[0]="$1" 
-
-    [[ ${args} != "" ]]
-
-    
-    # returns 0 if there are any arguments
 }
 
 function check_if_not_piped() {
@@ -305,15 +305,15 @@ function check_if_not_piped() {
 function step_up_counter() {
     #e_echo "step_up_counter $2"
 
-    local -n array_c3="$1"
+    local -n stuc_a_counters="$1"
     local idx="$2"
 
-    (( array_c3[$idx]++ ))
+    (( stuc_a_counters[$idx]++ ))
     
     #debug
-    #for i in "${!array_c3[@]}"
+    #for i in "${!stuc_a_counters[@]}"
     #do
-    #    e_echo "counter(key):  $i ------- value: ${array_c3[$i]}"
+    #    e_echo "counter(key):  $i ------- value: ${stuc_a_counters[$i]}"
     #done
 }
 
@@ -328,20 +328,20 @@ function draw_line() {
 
 function show_counters() {
     #e_echo show_counters
-    local -n array_c4=$1
+    local -n showc_a_counters=$1
     local idx
     local length=67
 
     echo
     draw_line $length
-    printf "%-60s: %5d\n" "New folders needed" "${array_c4[dir_needed]}"
-    printf "%-60s: %5d\n" "New folders created" "${array_c4[dir_created]}"
+    printf "%-60s: %5d\n" "New folders needed" "${showc_a_counters[dir_needed]}"
+    printf "%-60s: %5d\n" "New folders created" "${showc_a_counters[dir_created]}"
     draw_line $length
-    printf "%-60s: %5d\n" "Files read" "${array_c4[read]}"
-    printf "%-60s: %5d\n" "Files skipped due to they exist on target" "${array_c4[skip_exist]}"
-    printf "%-60s: %5d\n" "Files skipped due to no Date/Time Original tag was found" "${array_c4[skip_no_date]}"
+    printf "%-60s: %5d\n" "Files read" "${showc_a_counters["read"]}"
+    printf "%-60s: %5d\n" "Files skipped due to they exist on target" "${showc_a_counters[skip_exist]}"
+    printf "%-60s: %5d\n" "Files skipped due to no Date/Time Original tag was found" "${showc_a_counters[skip_no_date]}"
     draw_line $length
-    printf "%-60s: %5d\n" "TOTAL FILES IMPORTED" "${array_c4[imported]}"
+    printf "%-60s: %5d\n" "TOTAL FILES IMPORTED" "${showc_a_counters[imported]}"
     draw_line $length
     echo
 }
@@ -377,67 +377,62 @@ function check_target_dir() {
     [[ $exit_code -gt 0 ]] && { e_echo "$result" ; exit $exit_code; }
 }
     
-function process_opts() {
-    #e_echo process_opts
-    local -n target_dir=$1
-    local OPTIND
-    local move=false
-
-    # pop target_dir from arguments to clean up options
+function process_opts() { #e_echo process_opts
+    local -n popts_a_target_dir=$1
     shift 1
+    local -n popts_binary=$1
+    shift 1
+    local -n popts_force=$1
+    shift 1
+    local OPTIND
 
-    #echo "process_opts-- \$1: $1"
-    #echo "process_opts-- \$2: $2"
-    #echo "process_opts-- \$3: $3"
-    #echo "process_opts-- \$target_dir: ${target_dir[0]}"
-    while getopts mt:h option
+    while getopts mt:hfd option
     do
         case "$option" in
                 m)  
                     # import pictures by moving them from source location
-                    move=true
+                    popts_binary="mv"
                     ;;
                 t)
                     # target directory
-                    target_dir[0]="$OPTARG"
-                    #echo "process_opts-- IN case \$target_dir: ${target_dir[0]}"
-                    #echo "process_opts-- IN case \$OPTARG[t]: ${OPTARG}"
+                    popts_a_target_dir[0]="$OPTARG"
+                    ;;
+                f)  # force import of file even if it already exists in target
+                    popts_force="yes"
+                    ;;
+                d)  # debug (BASH)
+                    set -x
                     ;;
                 h) usage
                     ;;
                 *) usage
                     ;;
         esac
-        #echo "OPTARG in process_opts: ${OPTARG}"
-        #echo "process_opts--after case \$target_dir: ${target_dir[0]}"
     done
     shift $((OPTIND-1)) # Discard the options and sentinel --
-
-    # default behaviour for import: cp
-    $move && return 1 || return 0
-
 }
 
 # main 
 
 function main() {
     #e_echo "function: main"
-    # if an argument is found, it will be used as target directory
-    #local args[0]="$@"
     local default_dir="$HOME/Pictures"
 
     # Bash array to store target directory
     local -a a_target_dir
+
+    # Import method (skip if file exists in target)
+    local force="no"
 
     check_if_not_piped
 
     check_binaries
 
     # By default, import will be done by copying
-    export BIN="cp"
+    local BIN="cp"
 
     a_target_dir[0]="$default_dir"
-    process_opts a_target_dir "$@" || export BIN="mv"
+    process_opts a_target_dir BIN force "$@" #|| export BIN="mv"
     e_echo "INFO: BINary used for import: $BIN"
 
 
@@ -449,7 +444,7 @@ function main() {
 
     # init counters
     # associative array
-    local -A counters=( [read]=0 [skip_exist]=0 [skip_no_date]=0 [imported]=0 [dir_needed]=0 [dir_created]=0 [dummy]=0)
+    local -A a_counters=( [read]=0 [skip_exist]=0 [skip_no_date]=0 [imported]=0 [dir_needed]=0 [dir_created]=0 [dummy]=0)
 
     # Bash array to store files to import
     local -a a_files_to_import
@@ -460,10 +455,10 @@ function main() {
     # https://stackoverflow.com/questions/16461656/bash-how-to-pass-array-as-an-argument-to-a-function
 
     # same approach to pass by reference the 3 arrays to the function
-    process_files_to_import a_files_to_import a_target_dir counters "$BIN"
+    process_files_to_import a_files_to_import a_target_dir a_counters BIN force
 
     # show counters
-    show_counters counters
+    show_counters a_counters
 
     exit 0
 }

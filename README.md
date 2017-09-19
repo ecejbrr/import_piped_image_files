@@ -2,8 +2,10 @@
 
 - Utility to read STDIN files output by ``find`` and import (copy) them to a YYYY/MM/DD folder structure under a target directory.
 - Default target directory is $HOME/Pictures.
-- Optionally a target directory can be given to the script as argument (-t target dir). If given it will be used instead of $HOME/Pictures
-- Optionally import behavior can be changed to move files while importing them (instead of copying them). Switch -m.
+- -t Optionally a target directory can be given to the script as argument (-t target dir). If given it will be used instead of $HOME/Pictures
+- -m Optionally import behavior can be changed to move files while importing them (instead of copying them). Switch -m.
+- -d debug. Bash debugging. Switch -d
+- -f force. Import file regardless the same file exists in target folder. Switch -f
 
 - Image files will be placed under the target directory in a YYYY/MM/DD folder structure:
  - YYYY: year
@@ -16,6 +18,11 @@
 It uses great ``exiftool`` program to isolate "Date/Time Original" tag and to use the YYYY/MM/DD data to address the destination folder.
 If the image file does NOT have that "Date/Time Original" tag, that file will be skipped (and therefore not imported (moved)).
 
+## Usage
+
+```
+find [options to list files to import] | import_piped_image_files.sh [-d] [-f] [-m] [-t target_dir]
+```
 
 
 ## Examples
