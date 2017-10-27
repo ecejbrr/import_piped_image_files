@@ -4,61 +4,75 @@
 
 
 function usage() {
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo "USAGE:"
-    echo "Assuming you have downloaded import_piped_image_files.sh script with execution "
-    echo "permissions in a folder in your PATH (e.g.: /usr/local/bin)"
-    echo
-    echo "find [options to find files to import] | ${0##*/} [-m] [-d] [-f] [-t target_directory]"
-    echo
-    echo "***********************************"
-    echo "Script needs to be fed (STDIN) with list of files to import: "
-    echo "for instance the output from 'find'"
-    echo "By default, files will be imported (copied) in '$HOME/Pictures' directory"
-    echo "Options:"
-    echo " -m move (instead of copy for import). Optional."
-    echo " -t target directory. Import files to this target directory. Optional"
-    echo " -d debug. BASH debugging. Optional"
-    echo " -f force. Import file regardless it exists in target. Optional"
-    echo "The folder structure to place the files under the base import directory is:"
-    echo "BASE_IMPORT_DIR/YYYY/MM/DD/picture_file"
-    echo "YYYY: year, MM: month, DD: day of the taken shot"
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo "EXAMPLE 1:"
-    echo
-    echo 'find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh'
-    echo
-    echo "It searchs all JPG case insensitive files and CR2 files from"
-    echo "current directory and import (copy) them in default dir: $HOME/Pictures"
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo "EXAMPLE 2:"
-    echo 'find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh -t otherdir'
-    echo
-    echo "Same as previous example, but files are imported under 'otherdir' instead"
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo "EXAMPLE 3:"
-    echo 'find . -newer "last.jpg" -a -name "*CR2" | import_piped_image_files.sh -m -t other_dir'
-    echo
-    echo "All CR2 files newer than 'last.jpg' found under '.' dir will be imported (moved)"
-    echo "under 'other_dir'"
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo "EXAMPLE 4:"
-    echo 'find . -name "*CR2" | import_piped_image_files.sh -t "dir with spaces"'
-    echo
-    echo "All CR2 files found under '.' dir will be imported (copied) under 'dir with spaces'"
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo "EXAMPLE 5:"
-    echo 'find . -name "*CR2" | import_piped_image_files.sh -t dir\ with\ spaces'
-    echo
-    echo "All CR2 files found under '.' dir will be imported (copied) under 'dir with spaces'"
-    echo
-    echo "--------------------------------------------------------------------------------------"
+    local usage='
+    
+    --------------------------------------------------------------------------------------
+    USAGE:
+
+    Assuming you have downloaded import_piped_image_files.sh script with execution 
+    permissions in a folder in your PATH (e.g.: /usr/local/bin)
+    
+    find [options to find files to import] | ${0##*/} [-m] [-d] [-f] [-t target_directory]
+
+    ***********************************
+
+    Script needs to be fed (STDIN) with list of files to import,
+    for instance the output from "find"
+
+    By default, files will be imported (copied) in "$HOME/Pictures" directory
+
+    Options:
+     -m                  : move (instead of copy for import). Optional.
+     -t target directory : Import files to this target directory. Optional
+     -d                  : debug. BASH debugging. Optional
+     -f                  : force. Import file regardless it exists in target. Optional
+
+    The folder structure to place the files under the base import directory is:
+    BASE_IMPORT_DIR/YYYY/MM/DD/picture_file
+
+    ( YYYY: year, MM: month, DD: day of the taken shot )
+
+    --------------------------------------------------------------------------------------
+    EXAMPLE 1:
+
+    find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh
+
+    It searchs all JPG case insensitive files and CR2 files from
+    current directory and import (copy) them in default dir: $HOME/Pictures
+
+    --------------------------------------------------------------------------------------
+    EXAMPLE 2:
+
+    find . -type f -iname "*jpg" -o -name "*CR2" | import_piped_image_files.sh -t otherdir
+    
+    Same as previous example, but files are imported under "otherdir" instead
+
+    --------------------------------------------------------------------------------------
+    EXAMPLE 3:
+
+    find . -newer "last.jpg" -a -name "*CR2" | import_piped_image_files.sh -m -t other_dir
+    
+    All CR2 files newer than 'last.jpg' found under '.' dir will be imported (moved)
+    under "other_dir"
+
+    --------------------------------------------------------------------------------------
+    EXAMPLE 4:
+
+    find . -name "*CR2" | import_piped_image_files.sh -t "dir with spaces"
+    
+    All CR2 files found under "." dir will be imported (copied) under "dir with spaces"
+
+    --------------------------------------------------------------------------------------
+    EXAMPLE 5:
+
+    find . -name "*CR2" | import_piped_image_files.sh -t dir\ with\ spaces
+    
+    All CR2 files found under '.' dir will be imported (copied) under "dir with spaces"
+
+    --------------------------------------------------------------------------------------
+
+'
+    echo "$usage" | more
     
     exit 254
 }
@@ -72,21 +86,23 @@ function check_bin() {
     local binary="$1"
 
     #e_echo "Checking $binary"
-    [ $(which "$binary") ] || { e_echo "WARNING: Binary $binary not found. Exiting..."; exit 2; }
+    [ $(which "$binary") ] || { e_echo "WARNING: Executable file $binary not found. Exiting..."; exit 2; }
 }
 
 function check_binaries() {
     #e_echo "function: check_binaries"
     # Check binaries existence in host
     local binaries="
-    exiftool
-    sed
-    gawk
-    cut
-    grep
-    mv
     cp
+    cut
+    exiftool
+    gawk
+    grep
+    more
+    mv
+    sed
     "
+
     for bin in $binaries
     do
         check_bin "$bin" 
@@ -147,20 +163,20 @@ function check_date() {
     [[ $date != "" ]]
     result="$?"
 
-    [ "$result" -eq 0 ] || { e_echo "WARN: Unable to get Date/Time Original tag from $file file. Skipping it. "; step_up_counter chdate_a_counters "skip_no_date"; }
+    [ "$result" -eq 0 ] || { e_echo "WARN: Unable to get Create Date tag from $file file. Skipping it. "; step_up_counter chdate_a_counters "skip_no_date"; }
     return "$result"
 }
 
 function get_date() {
     #e_echo "function: get_date"
-    # from image file, isolate "Date/Time Original" tag(s)
+    # from image file, isolate "Create Date" tag(s)
     # grab YYYY:MM:DD value(s)
     # return first
 
     # using array file to prevent errors if filename contains spaces
     local a_file[0]="$1"
 
-    exiftool "${a_file[0]}" | gawk -F"^Date/Time Original *:" '/^Date\/Time Original/{print $2}' | sed -e 's/^ *//; s/ *$//' | cut -d\  -f1 | head -1
+    exiftool "${a_file[0]}" | gawk -F"^Create Date *:" '/^Create Date/{print $2}' | sed -e 's/^ *//; s/ *$//' | cut -d\  -f1 | head -1
 
 }
 
@@ -348,7 +364,7 @@ function show_counters() {
     draw_line $length
     printf "%-60s: %5d\n" "Files read" "${showc_a_counters["read"]}"
     printf "%-60s: %5d\n" "Files skipped due to they exist on target" "${showc_a_counters[skip_exist]}"
-    printf "%-60s: %5d\n" "Files skipped due to no Date/Time Original tag was found" "${showc_a_counters[skip_no_date]}"
+    printf "%-60s: %5d\n" "Files skipped due to no Create Date tag was found" "${showc_a_counters[skip_no_date]}"
     draw_line $length
     printf "%-60s: %5d\n" "TOTAL FILES IMPORTED" "${showc_a_counters[imported]}"
     draw_line $length

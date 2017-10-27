@@ -15,8 +15,8 @@
 
 - If the YYYY/MM/DD folder does not exist, it will be created
 
-It uses great ``exiftool`` program to isolate "Date/Time Original" tag and to use the YYYY/MM/DD data to address the destination folder.
-If the image file does NOT have that "Date/Time Original" tag, that file will be skipped (and therefore not imported (moved)).
+It uses great ``exiftool`` program to isolate ~~"Date/Time Original"~~ "Create Date" tag and to use the YYYY/MM/DD data to address the destination folder.
+If the image file does NOT have that ~~"Date/Time Original"~~ "Create Date" tag, that file will be skipped (and therefore not imported (moved)).
 
 ## Usage
 
